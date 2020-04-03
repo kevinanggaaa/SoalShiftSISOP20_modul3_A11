@@ -33,5 +33,5 @@ Ketentuan permainan sebagai berikut:
     2. Capture Mode (3 Menu)
        1. Tangkap → Menangkap menggunakan pokeball. Berhasil ditangkap maupun tidak, pokeball di inventory -1 setiap digunakan.
        2. Item → Menggunakan item sesuai dengan tabel item dibawah (hanya lullaby powder).
-       3. Keluar → Keluar dari Capture Mode menuju Normal Mode. 
+       3. Keluar → Keluar dari Capture Mode menuju Normal Mode.  
        - Pokemon tersebut memiliki peluang untuk lari dari trainer sesuai dengan persentase escape rate pada tabel dibawah (gunakan thread).
