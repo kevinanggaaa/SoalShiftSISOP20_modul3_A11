@@ -46,8 +46,7 @@ int main()
       message[1] = j;
       void *msgPtr = (void *)message;
       iret[i][j] = pthread_create( &thread[i][j], NULL, calculateMatrix, msgPtr); //membuat thread pertama
-      if(iret[i][j]) //jika eror
-{
+      if(iret[i][j]) { //jika eror
           fprintf(stderr,"Error - pthread_create() return code: %d\n",iret[i][j]);
           exit(EXIT_FAILURE);
       }
@@ -59,14 +58,14 @@ int main()
   for (i = 0; i < mat1I; i++) {
     for (j = 0; j < mat2J; j++) {
       pthread_join( thread[i][j], NULL );
-      printf("thread joined\n");
+    //   printf("thread joined\n");
     }
   }
 
   for (i = 0; i < mat1I; i++) {
     printf("%d", retVals[i][0]);
     for (j = 1; j < mat2J; j++) {
-      printf(", %d", retVals[i][j]);
+      printf(" %d", retVals[i][j]);
     }
     printf("\n");
   }
@@ -82,8 +81,8 @@ void *calculateMatrix( void *temp) {
   int sum = 0;
   int i;
   for(i = 0; i < mat1J; i++) {
-    printf("%d,%d multi: %d * %d = %d\n", 
-    iMat1, jMat2, matrix1[iMat1][i], matrix2[i][jMat2], sum);
+    // printf("%d,%d multi: %d * %d = %d\n", 
+    // iMat1, jMat2, matrix1[iMat1][i], matrix2[i][jMat2], sum);
     sum += matrix1[iMat1][i] * matrix2[i][jMat2];
   }
 
