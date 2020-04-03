@@ -9,10 +9,10 @@ Ketentuan permainan sebagai berikut:
  1. Menggunakan IPC-shared memory, thread, fork-exec.
  2. Kalian bebas berkreasi dengan game ini asal tidak konflik dengan requirements yang ada. (Contoh: memberi nama trainer, memberi notifikasi kalau barang di shop sudah penuh, dan lain-lain).
  3. Terdapat 2 code yaitu soal2_traizone.c dan soal2_pokezone.c.
- 4. **soal2_traizone.c** mengandung fitur:
+ 4. soal2_traizone.c mengandung fitur:
     1. Normal Mode (3 Menu)
        1. Cari Pokemon
-          1. Jika diaktifkan maka setiap 10 detik akan memiliki 60% chance untuk menemui pokemon bertipe normal, rare, legendary dengan encounter rate sesuai pada tabel di bawah (Gunakan Thread).
+          1. Jika diaktifkan maka **setiap 10 detik** akan memiliki 60% chance untuk menemui pokemon bertipe normal, rare, legendary dengan encounter rate sesuai pada tabel di bawah (Gunakan Thread).
           2. Cari pokemon hanya mengatur dia menemukan pokemon atau tidak. Untuk tipe pokemon dan pokemon tersebut shiny atau tidak diatur oleh soal2_pokezone.c.
           3. Opsi “Cari Pokemon” akan berubah jadi “Berhenti Mencari” ketika state mencari pokemon aktif.
           4. State mencari pokemon hanya bisa dihentikan ketika pokemon sudah ditemukan atau trainer memilih untuk berhenti pada menu.
@@ -22,7 +22,7 @@ Ketentuan permainan sebagai berikut:
           1. Melihat list pokemon beserta Affection Point (AP) yang dimiliki.
           2. Maksimal 7 pokemon yang dimiliki.
           3. Jika menangkap lebih dari 7 maka pokemon yang baru saja ditangkap akan langsung dilepas dan mendapatkan pokedollar sesuai dengan tabel dibawah.
-          4. Setiap pokemon yang dimiliki, mempunyai Affection Point (AP) dengan initial value 100 dan akan terus berkurang sebanyak -10 AP/10 detik dimulai dari waktu ditangkap (Gunakan Thread).
+          4. Setiap pokemon yang dimiliki, mempunyai Affection Point (AP) dengan initial value 100 dan akan terus berkurang sebanyak **-10 AP/10 detik** dimulai dari waktu ditangkap (Gunakan Thread).
           5. Jika AP bernilai 0, maka pokemon tersebut memiliki 90% chance untuk lepas tanpa memberikan pokedollar ke trainer atau 10% chance untuk reset AP menjadi 50 AP.
           6. AP tidak akan berkurang jika dalam Capture Mode.
           7. Di Pokedex trainer juga bisa melepas pokemon yang ditangkap dan mendapat pokedollar sesuai dengan tabel dibawah.
@@ -36,3 +36,10 @@ Ketentuan permainan sebagai berikut:
        3. Keluar → Keluar dari Capture Mode menuju Normal Mode.
        <br/>
     * Pokemon tersebut memiliki peluang untuk lari dari trainer sesuai dengan persentase escape rate pada tabel dibawah (gunakan thread).
+5. soal2_pokezone.c mengandung fitur:
+   1. Shutdown game → Mematikan program soal2_pokezone dan soal2_traizone (Gunakan fork exec).
+   2. Jual Item (Gunakan Thread)
+      1. Stock awal semua item adalah 100.
+      2. Masing-masing item akan bertambah +10 item/10 detik.
+      3. Maximum item yang dalam shop adalah 200.
+      4. List item ada pada tabel dibawah.
