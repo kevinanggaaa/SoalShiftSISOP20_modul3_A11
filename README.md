@@ -35,4 +35,4 @@ Ketentuan permainan sebagai berikut:
        2. Item → Menggunakan item sesuai dengan tabel item dibawah (hanya lullaby powder).
        3. Keluar → Keluar dari Capture Mode menuju Normal Mode.
        <br/>
-       *  Pokemon tersebut memiliki peluang untuk lari dari trainer sesuai dengan persentase escape rate pada tabel dibawah (gunakan thread).
+    * Pokemon tersebut memiliki peluang untuk lari dari trainer sesuai dengan persentase escape rate pada tabel dibawah (gunakan thread).
