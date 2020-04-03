@@ -45,3 +45,5 @@ Ketentuan permainan sebagai berikut:
       4. List item ada pada tabel dibawah.
       </br>
 ![image](https://user-images.githubusercontent.com/60419316/78347246-649bd800-75ca-11ea-95a5-3d6283be1fc8.png)
+      5. Gunakan thread untuk implementasi lullaby powder dibuatkan
+masing-masing 1 thread.
