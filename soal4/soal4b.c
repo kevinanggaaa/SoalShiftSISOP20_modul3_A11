@@ -2,6 +2,7 @@
 #include<string.h> 
 #include<stdlib.h> 
 #include<unistd.h> 
+#include<pthread.h>
 #include<sys/types.h>
 #include<sys/wait.h>
 #include<sys/shm.h>
@@ -72,10 +73,12 @@ void runProgramOne() {
 
 }
 
-int calcSum(int num) {
-    return num*(num + 1)/2;
+void *calcSum(void *temp) {
+    int *msg = (int *)temp;
+    int num = msg[0];
+    long res = num*(num + 1)/2;
+    return (void *)res;
 }
-
 
 int main(int argc, char const *argv[])
 {
@@ -101,17 +104,39 @@ int main(int argc, char const *argv[])
         int shmid = shmget(shmKey, sizeof(int)*20, IPC_CREAT | 0666);
         int (*buffer)[5];
         buffer = (int (*)[5])shmat(shmid, NULL, 0);
-
+        // Calculate using threads
+        pthread_t threads[4][5];
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 5; j++) {
+                int *msg = malloc(sizeof(int));
+                *msg = buffer[i][j];
+                int iret = pthread_create(&threads[i][j], NULL, calcSum, (void *) msg);
+                if (iret) {
+                    perror("failed to create thread");
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
+        
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 5; j++) {
+                int retVal;
+                pthread_join(threads[i][j], (void **)&retVal);
+                buffer[i][j] = retVal;
+            }
+        }
+        
         // Get input from last program
         int in;
         for (int i = 0; i < 4; i++) {
-            printf("%d", calcSum(buffer[i][0]));
+            printf("%d", buffer[i][0]);
             for (int j = 1; j < 5; j++) {
-                printf(" %d", calcSum(buffer[i][j]));
+                printf(" %d", buffer[i][j]);
             }
             printf("\n");
         }
         shmdt(buffer);
+        shmctl(shmid,IPC_RMID,NULL); 
     }
     return 0;
 }
