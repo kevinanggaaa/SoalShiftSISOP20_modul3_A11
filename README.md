@@ -51,4 +51,5 @@ Ketentuan permainan sebagai berikut:
       3. Setiap 1 detik thread ini akan mengkalkulasi random ulang lagi untuk nantinya diberikan ke soal2_traizone.
 ![image](https://user-images.githubusercontent.com/60419316/78350251-13421780-75cf-11ea-96fc-21cd2ffd1fa9.png)
 <br/>
+
 ## Soal 2
