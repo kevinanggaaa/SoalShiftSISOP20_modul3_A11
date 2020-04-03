@@ -40,8 +40,12 @@ Ketentuan permainan sebagai berikut:
    1. Shutdown game → Mematikan program soal2_pokezone dan soal2_traizone (Gunakan fork exec).
    2. Jual Item (Gunakan Thread)
       1. Stock awal semua item adalah 100.
-      2. Masing-masing item akan bertambah +10 item/10 detik.
+      2. Masing-masing item akan bertambah **+10 item/10 detik**.
       3. Maximum item yang dalam shop adalah 200.
       4. List item ada pada tabel dibawah.
       ![image](https://user-images.githubusercontent.com/60419316/78349685-2f918480-75ce-11ea-8239-610ca5333b5c.png)
       5. Gunakan thread untuk implementasi lullaby powder dibuatkan masing-masing 1 thread.
+   3. Menyediakan Random Pokemon (Gunakan Thread)
+      1. Setiap tipe pokemon memiliki peluang 1/8000 untuk jadi shiny pokemon. (Random dulu antara normal, rare, legendary sesuai rate mereka, baru setelah itu di random dengan peluang 1/8000 untuk tahu dia shiny atau tidak).
+      2. Shiny Pokemon meningkatkan escape rate sebesar +5% (misal: tipe normal jadi 10%), capture rate berkurang menjadi -20% (misal: tipe rare jadi 30%), dan pokedollar dari melepas +5000 (misal: tipe legendary jadi 5200 pokedollar).
+      3. Setiap 1 detik thread ini akan mengkalkulasi random ulang lagi untuk nantinya diberikan ke soal2_traizone.
