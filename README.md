@@ -43,3 +43,5 @@ Ketentuan permainan sebagai berikut:
       2. Masing-masing item akan bertambah +10 item/10 detik.
       3. Maximum item yang dalam shop adalah 200.
       4. List item ada pada tabel dibawah.
+      </br>
+      ![image](https://user-images.githubusercontent.com/60419316/78347159-41712880-75ca-11ea-99f6-f32640f72590.png)
