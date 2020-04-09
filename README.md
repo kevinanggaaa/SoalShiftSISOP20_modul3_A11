@@ -74,6 +74,7 @@ Choices : {your input}
 ```
 <br/>
 - Pada screen 1 kalian dapat menginputkan “login”, setelah menekan enter anda diminta untuk menginputkan username dan password seperti berikut
+
 <br/>
 ```
 Screen 1 :
@@ -84,6 +85,7 @@ Username : { ex : qiqi }
 Password : { ex : aku nggak marah!! }
 ```
 <br/>
+
 - Jika login berhasil maka akan menampilkan pesan “login success”, jika gagal akan menampilkan pesan “login failed” (pengecekan login hanya mengecek username dan password, maka dapat multi autentikasi dengan username dan password yang sama)
 - Pada screen 1 kalian juga dapat menginputkan “register”, setelah menekan enter anda diminta untuk menginputkan username dan password sama halnya seperti login
 - Pada register tidak ada pengecekan unique username, maka setelah register akan langsung menampilkan pesan “register success” dan dapat terjadi double account
@@ -97,6 +99,7 @@ Screen 2 :
 Choices : {your input}
 ```
 <br/>
+
 - Pada screen 2 anda dapat menginputkan “logout” setelah logout anda akan kembali ke screen 1
 - Pada screen 2 anda dapat menginputkan “find”, setelah itu akan menampilkan pesan “Waiting for player ...” print terus sampai menemukan lawan
 - Jika menemukan lawan maka akan menampilkan pesan “Game dimulai silahkan tap tap secepat mungkin !!”
