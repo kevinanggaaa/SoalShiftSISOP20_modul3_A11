@@ -66,63 +66,68 @@ Spesifikasi Game :
 <br/>
 
 ### CLIENT SIDE
-
+```
 Screen 1 :
 1. Login
 2. Register
 Choices : {your input}
+```
 <br/>
-★ Pada screen 1 kalian dapat menginputkan “login”, setelah menekan enter anda diminta untuk menginputkan username dan password seperti berikut
+- Pada screen 1 kalian dapat menginputkan “login”, setelah menekan enter anda diminta untuk menginputkan username dan password seperti berikut
 <br/>
+```
 Screen 1 :
 1. Login
 2. Register
 Choices : login
 Username : { ex : qiqi }
 Password : { ex : aku nggak marah!! }
+```
 <br/>
-★ Jika login berhasil maka akan menampilkan pesan “login success”, jika gagal akan menampilkan pesan “login failed” (pengecekan login hanya mengecek username dan password, maka dapat multi autentikasi dengan username dan password yang sama)
-★ Pada screen 1 kalian juga dapat menginputkan “register”, setelah menekan enter anda diminta untuk menginputkan username dan password sama halnya seperti login
-★ Pada register tidak ada pengecekan unique username, maka setelah register akan langsung menampilkan pesan “register success” dan dapat terjadi double account
-★ Setelah login berhasil maka anda berpindah ke screen 2 dimana menampilkan 2 fitur seperti berikut.
+- Jika login berhasil maka akan menampilkan pesan “login success”, jika gagal akan menampilkan pesan “login failed” (pengecekan login hanya mengecek username dan password, maka dapat multi autentikasi dengan username dan password yang sama)
+- Pada screen 1 kalian juga dapat menginputkan “register”, setelah menekan enter anda diminta untuk menginputkan username dan password sama halnya seperti login
+- Pada register tidak ada pengecekan unique username, maka setelah register akan langsung menampilkan pesan “register success” dan dapat terjadi double account
+- Setelah login berhasil maka anda berpindah ke screen 2 dimana menampilkan 2 fitur seperti berikut.
 
 <br/>
+```
 Screen 2 :
 1. Find Match
 2. Logout
 Choices : {your input}
+```
 <br/>
-★ Pada screen 2 anda dapat menginputkan “logout” setelah logout anda akan kembali ke screen 1
-★ Pada screen 2 anda dapat menginputkan “find”, setelah itu akan menampilkan pesan “Waiting for player ...” print terus sampai menemukan lawan
-★ Jika menemukan lawan maka akan menampilkan pesan “Game dimulai silahkan tap tap secepat mungkin !!”
-★ Pada saat game dimulai diberikan variable health = 100,dan anda dapat men-tap (menekan space pada keyboard tanpa harus menekan enter)
-★ Pada saat anda men-tap maka akan menampilkan pesan “hit !!”, dan pada lawan healthnya akan berkurang sebanyak 10 kemudian pada lawan menampilkan pesan status healthnya sekarang. (conclusion : anda tidak bisa melihat status health lawan)
-★ Jika health anda <= 0 maka akan menampilkan pesan “Game berakhir kamu kalah”, apabila lawan anda healthnya <= 0 maka akan menampilkan pesan ”Game berakhir kamu menang”
-★ Setelah menang atau kalah maka akan kembali ke screen 2
+- Pada screen 2 anda dapat menginputkan “logout” setelah logout anda akan kembali ke screen 1
+- Pada screen 2 anda dapat menginputkan “find”, setelah itu akan menampilkan pesan “Waiting for player ...” print terus sampai menemukan lawan
+- Jika menemukan lawan maka akan menampilkan pesan “Game dimulai silahkan tap tap secepat mungkin !!”
+- Pada saat game dimulai diberikan variable health = 100,dan anda dapat men-tap (menekan space pada keyboard tanpa harus menekan enter)
+- Pada saat anda men-tap maka akan menampilkan pesan “hit !!”, dan pada lawan healthnya akan berkurang sebanyak 10 kemudian pada lawan menampilkan pesan status healthnya sekarang. (conclusion : anda tidak bisa melihat status health lawan)
+- Jika health anda <= 0 maka akan menampilkan pesan “Game berakhir kamu kalah”, apabila lawan anda healthnya <= 0 maka akan menampilkan pesan ”Game berakhir kamu menang”
+- Setelah menang atau kalah maka akan kembali ke screen 2
 </br>
 
 ### SERVER SIDE
 
-★ Pada saat program pertama kali dijalankan maka program akan membuat file akun.txt jika file tersebut tidak ada. File tersebut digunakan untuk menyimpan username dan password
-★ Pada saat user berhasil login maka akan menampilkan pesan “Auth success” jika gagal “Auth Failed”
-★ Pada saat user sukses meregister maka akan menampilkan List account yang terdaftar (username dan password harus terlihat)
+- Pada saat program pertama kali dijalankan maka program akan membuat file akun.txt jika file tersebut tidak ada. File tersebut digunakan untuk menyimpan username dan password
+- Pada saat user berhasil login maka akan menampilkan pesan “Auth success” jika gagal “Auth Failed”
+- Pada saat user sukses meregister maka akan menampilkan List account yang terdaftar (username dan password harus terlihat)
 
 ## Soal 3
 Buatlah sebuah program dari C untuk mengkategorikan file. Program ini akan memindahkan file sesuai ekstensinya (tidak case sensitive. JPG dan jpg adalah sama) ke dalam folder sesuai ekstensinya yang folder hasilnya terdapat di working directory ketika program kategori tersebut dijalankan.
-● Semisal program dijalankan:
+- Semisal program dijalankan:
 ![image](https://user-images.githubusercontent.com/60419316/78861760-ce4f3280-7a5f-11ea-91f5-d3791657b67a.png)  
-● Pada opsi -f tersebut, user bisa menambahkan argumen file yang bisa
+- Pada opsi -f tersebut, user bisa menambahkan argumen file yang bisa
 dikategorikan sebanyak yang user inginkan seperti contoh di atas.
-● Pada program kategori tersebut, folder jpg,c,zip tidak dibuat secara manual, melainkan melalui program c. Semisal ada file yang tidak memiliki ekstensi, maka dia akan disimpan dalam folder “Unknown”.
-● Program kategori ini juga menerima perintah (\*) seperti di bawah;
+- Pada program kategori tersebut, folder jpg,c,zip tidak dibuat secara manual, melainkan melalui program c. Semisal ada file yang tidak memiliki ekstensi, maka dia akan disimpan dalam folder “Unknown”.
+- Program kategori ini juga menerima perintah (\*) seperti di bawah;
 ![image](https://user-images.githubusercontent.com/60419316/78861786-e7f07a00-7a5f-11ea-8f90-f20509e46826.png)  
-● Artinya mengkategori seluruh file yang ada di working directory ketika menjalankan program C tersebut.
-● Selain hal itu program C ini juga menerima opsi -d untuk melakukan kategori pada suatu directory. Untuk opsi -d ini, user hanya bisa menginput 1 directory saja, tidak seperti file yang bebas menginput file sebanyak mungkin.
+- Artinya mengkategori seluruh file yang ada di working directory ketika menjalankan program C tersebut.
+- Selain hal itu program C ini juga menerima opsi -d untuk melakukan kategori pada suatu directory. Untuk opsi -d ini, user hanya bisa menginput 1 directory saja, tidak seperti file yang bebas menginput file sebanyak mungkin.
 ![image](https://user-images.githubusercontent.com/60419316/78861858-1bcb9f80-7a60-11ea-9a8f-d3fce208e630.png)  
-● Hasilnya perintah di atas adalah mengkategorikan file di /path/to/directory dan hasilnya akan disimpan di working directory di mana program C tersebut berjalan (hasil kategori filenya bukan di /path/to/directory).
-● Program ini tidak rekursif. Semisal di directory yang mau dikategorikan, atau menggunakan (\*) terdapat folder yang berisi file, maka file dalam folder tersebut tidak dihiraukan, cukup file pada 1 level saja.
-● Setiap 1 file yang dikategorikan dioperasikan oleh 1 thread agar bisa berjalan secara paralel sehingga proses kategori bisa berjalan lebih cepat. Dilarang juga menggunakan fork-exec dan system.
-● Silahkan download soal3.zip sebagai percobaan. Namun silahkan dicoba-coba sendiri untuk kemungkinan test case lainnya yang mungkin
+- Hasilnya perintah di atas adalah mengkategorikan file di /path/to/directory dan hasilnya akan disimpan di working directory di mana program C tersebut berjalan (hasil kategori filenya bukan di /path/to/directory).
+- Program ini tidak rekursif. Semisal di directory yang mau dikategorikan, atau menggunakan (\*) terdapat folder yang berisi file, maka file dalam folder tersebut tidak dihiraukan, cukup file pada 1 level saja.
+- Setiap 1 file yang dikategorikan dioperasikan oleh 1 thread agar bisa berjalan secara paralel sehingga proses kategori bisa berjalan lebih cepat. Dilarang juga menggunakan fork-exec dan system.
+- Silahkan download soal3.zip sebagai percobaan. Namun silahkan dicoba-coba sendiri untuk kemungkinan test case lainnya yang mungkin
 belum ada di soal3.zip.
 
 ## Soal 4
