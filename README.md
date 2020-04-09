@@ -75,7 +75,6 @@ Choices : {your input}
 <br/>
 - Pada screen 1 kalian dapat menginputkan “login”, setelah menekan enter anda diminta untuk menginputkan username dan password seperti berikut
 
-<br/>
 ```
 Screen 1 :
 1. Login
@@ -91,7 +90,7 @@ Password : { ex : aku nggak marah!! }
 - Pada register tidak ada pengecekan unique username, maka setelah register akan langsung menampilkan pesan “register success” dan dapat terjadi double account
 - Setelah login berhasil maka anda berpindah ke screen 2 dimana menampilkan 2 fitur seperti berikut.
 
-<br/>
+
 ```
 Screen 2 :
 1. Find Match
