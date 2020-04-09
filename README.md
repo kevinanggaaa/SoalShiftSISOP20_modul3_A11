@@ -110,7 +110,6 @@ Choices : {your input}
 ## Soal 3
 Buatlah sebuah program dari C untuk mengkategorikan file. Program ini akan memindahkan file sesuai ekstensinya (tidak case sensitive. JPG dan jpg adalah sama) ke dalam folder sesuai ekstensinya yang folder hasilnya terdapat di working directory ketika program kategori tersebut dijalankan.
 ● Semisal program dijalankan:
-# File kategori terletak di /home/izone/kategori
 ![image](https://user-images.githubusercontent.com/60419316/78861760-ce4f3280-7a5f-11ea-91f5-d3791657b67a.png)  
 ● Pada opsi -f tersebut, user bisa menambahkan argumen file yang bisa
 dikategorikan sebanyak yang user inginkan seperti contoh di atas.
