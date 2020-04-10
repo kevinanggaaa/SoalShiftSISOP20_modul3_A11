@@ -1910,3 +1910,5 @@ int main(int argc, char const *argv[])
     return 0;
 }
 ```
+### Bukti
+![image](https://user-images.githubusercontent.com/60419316/78980214-a76c2b80-7b47-11ea-9a60-889f6d8ee8dd.png)
