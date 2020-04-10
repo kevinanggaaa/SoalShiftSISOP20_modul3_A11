@@ -52,6 +52,723 @@ Ketentuan permainan sebagai berikut:
 ![image](https://user-images.githubusercontent.com/60419316/78350251-13421780-75cf-11ea-96fc-21cd2ffd1fa9.png)
 <br/>
 
+### Jawaban Soal 1
+1. soal1_pokezone.c
+```
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct RandPokemon_s{
+	int isLocked;
+	char name[20];
+	int type;
+	int capRateA;
+	int capRateB;
+	int escapeRateA;
+	int escapeRateB;
+	int price;
+}RandPokemon_t;
+
+typedef struct Shop_s{
+	int isLocked;
+	int lullabyPowder;
+	int lullabyPowderPrice;
+	int pokeball;
+	int pokeballPrice;
+	int berry;
+	int berryPrice;
+}Shop_t;
+
+typedef struct State_s{
+	RandPokemon_t * randPokemon;
+	Shop_t * sharedShop;
+}State_t;
+
+void * randomizePokemonThread(void * param);
+void * shopThread(void * param);
+
+int main(int argc, const char * argv[]){
+	srand(time(0));
+
+	State_t * state = malloc(sizeof(State_t));
+	memset(state, 0, sizeof(State_t));
+
+	//shared memory
+	key_t key = 1111;
+	RandPokemon_t * randPokemon;
+	int shmid =  shmget(key, sizeof(RandPokemon_t), IPC_CREAT | 0666);
+	randPokemon = shmat(shmid, NULL, 0);
+	memset(randPokemon, 0, sizeof(randPokemon));
+
+	state->randPokemon = randPokemon;
+
+	key_t key2 = 2222;
+	Shop_t * sharedShop;
+	int shmid2 =  shmget(key2, sizeof(Shop_t), IPC_CREAT | 0666);
+	sharedShop = shmat(shmid2, NULL, 0);
+	memset(sharedShop, 0, sizeof(sharedShop));
+
+	state->sharedShop = sharedShop;
+	
+	pthread_t pokemonThread;
+
+	if(pthread_create(&pokemonThread, NULL, &randomizePokemonThread, (void*)state ) < 0){
+		printf("can't create thread\n");
+		exit(EXIT_FAILURE);
+	}
+
+	pthread_t shop;
+
+	if(pthread_create(&shop, NULL, &shopThread, (void*)state ) < 0){
+		printf("can't create thread\n");
+		exit(EXIT_FAILURE);
+	}
+	printf("--POKEZONE--\n");
+	printf("1. Exit\n");
+	printf("Choice : ");
+	int choice;
+	scanf("%d", &choice);
+	pid_t ppp = getpid();
+	if(choice == 1){
+		char * argv[] = {"pkill", "traizone.exe", NULL};
+		execv("/usr/bin/pkill", argv);
+	}
+
+
+	pthread_join(pokemonThread, NULL);
+	pthread_join(shop, NULL);
+
+	shmdt(randPokemon);
+    shmctl(shmid, IPC_RMID, NULL);
+
+	shmdt(sharedShop);
+    shmctl(shmid2, IPC_RMID, NULL);
+	return 0;
+}
+
+RandPokemon_t *genPoke(char *name, int type, int capA, int capB, int escA, int escB, int price) {
+	RandPokemon_t *retPoke = malloc(sizeof(RandPokemon_t));
+	strcpy(retPoke->name, name);
+	retPoke->type = type;
+	retPoke->capRateA = capA;
+	retPoke->capRateB = capB;
+	retPoke->escapeRateA = escA;
+	retPoke->escapeRateB = escB;
+	retPoke->price = price;
+	return retPoke;
+}
+
+void * randomizePokemonThread(void * param){
+	State_t * state = (State_t *)param;
+	RandPokemon_t * randPokemon = state->randPokemon;
+	char normalName[5][20] = { "Bulbasaur", "Charmander", "Squirtle", "Rattata", "Caterpie" };
+	char rareName[5][20] = { "Pikachu", "Eevee", "Jigglypuff", "Snorlax", "Dragonite" };
+	char legendaryName[5][20] = { "Mew", "Mewtwo", "Moltres", "Zapdos", "Articuno" };
+
+	while(1){
+		while (randPokemon->isLocked) {
+			sleep(1);
+		}
+		
+		int random = rand()%20;
+		// Clear pokemon pointer
+		RandPokemon_t *newPoke;
+		// Start random
+		if(random <= 15){
+		//normal
+			random = rand()%5;
+			newPoke = genPoke(normalName[random], 0, 7, 10, 1, 20, 80);
+		}else if(random <= 18){
+		//rare
+			random = rand()%5;
+			newPoke = genPoke(rareName[random], 1, 5, 10, 1, 10, 100);
+		}else{
+		//legendary
+			random = rand()%5;
+			newPoke = genPoke(legendaryName[random], 2, 3, 10, 1, 5, 200);
+		}
+
+		random = rand()%8000;
+		if(random == 0){
+		// Shiny
+			newPoke->capRateA -= 2;
+			newPoke->escapeRateA += 1;
+			newPoke->price += 5000;
+		}
+		// Switch randPokemon to new data
+		memcpy(randPokemon, newPoke, sizeof(RandPokemon_t));
+		free(newPoke);
+
+		sleep(1);
+	}
+}
+
+void * shopThread(void * param){
+	State_t * state = (State_t *)param;
+	state->sharedShop->isLocked = 1;
+	state->sharedShop->lullabyPowder = 100;
+	state->sharedShop->pokeball = 100;
+	state->sharedShop->berry = 100;
+	state->sharedShop->lullabyPowderPrice = 60;
+	state->sharedShop->pokeballPrice = 15;
+	state->sharedShop->berryPrice = 5;
+	state->sharedShop->isLocked = 0;
+	fflush(stdout);
+	while(1){
+		sleep(10);
+		while(state->sharedShop->isLocked) usleep(10000);
+		state->sharedShop->isLocked = 1;
+
+		state->sharedShop->berry += 10;
+		if(state->sharedShop->berry > 200) {
+			state->sharedShop->berry = 200;
+		}
+		state->sharedShop->pokeball += 10;
+		if(state->sharedShop->pokeball > 200) {
+			state->sharedShop->pokeball = 200;
+		}
+		state->sharedShop->lullabyPowder += 10;
+		if(state->sharedShop->lullabyPowder > 200) {
+			state->sharedShop->lullabyPowder = 200;
+		}
+
+		state->sharedShop->isLocked = 0;
+		fflush(stdout);
+	}
+}
+```
+2. soal1_traizone.c
+```
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define NORMAL_MODE 0
+#define POKEDEX 1
+#define SHOP 2
+#define CAPTURE_MODE 3
+
+typedef struct RandPokemon_s{
+	int isLocked;
+	char name[20];
+	int type;
+	int capRateA;
+	int capRateB;
+	int escapeRateA;
+	int escapeRateB;
+	int price;
+}RandPokemon_t;
+
+typedef struct Shop_s{
+	int isLocked;
+	int lullabyPowder;
+	int lullabyPowderPrice;
+	int pokeball;
+	int pokeballPrice;
+	int berry;
+	int berryPrice;
+}Shop_t;
+
+typedef struct Pokemon_s{
+	int released;
+	char name[20];
+	int type;
+	int ap;
+	int price;
+}Pokemon_t;
+
+typedef struct Inventory_s{
+	int pokeball;
+	int lullabyPowder;
+	int berry;
+	int pokedollar;
+}Inventory_t;
+
+typedef struct PokeBag_s{
+	Pokemon_t * pokemon[7];
+	int count;
+}PokeBag_t;
+
+typedef struct State_s{
+	int gameState;
+	int isRunning;
+	int cariPokemon;
+	int jumlahLullabyActive;
+	Inventory_t * inventory;
+	PokeBag_t * pokeBag;
+	RandPokemon_t * randPokemon;
+	Shop_t * sharedShop;
+}State_t;
+
+typedef struct WildPokemonParam_s{
+	State_t * state;
+	int isRunning;
+}WildPokemonParam_t;
+
+typedef struct PokemonParam_s{
+	Pokemon_t * pokemon;
+	State_t * state;
+}PokemonParam_t;
+
+void * cariPokemonThread(void * param);
+void * pokemonThread(void * param);
+void * wildpokemonThread(void * param);
+void * lullabyThread(void * param);
+void addApPokemon(Pokemon_t * pokemon, int ap);
+int addPokemon(State_t * pokeBag, Pokemon_t * pokemon);
+Pokemon_t * tamePokemon(RandPokemon_t * wildPokemon);
+void removePokemon(PokeBag_t * pokeBag, int index);
+void normalMode(State_t *);
+void printNormalMenu(State_t *state);
+void pokedex(State_t *);
+void printPokedexMenu(State_t *state);
+void shop(State_t *);
+void printShopMenu(Shop_t *sharedShop, Inventory_t *inventory);
+void captureMode(State_t *);
+void printCaptureMenu(RandPokemon_t *pokemon);
+
+void normalMode(State_t * state){
+	printNormalMenu(state);
+	
+	int choice;
+	scanf("%d", &choice);
+
+	if(choice == 1){
+		if(state->cariPokemon){
+			state->cariPokemon = 0;
+		}else{
+			state->cariPokemon = 1;
+			pthread_t thread;
+			if(pthread_create(&thread, NULL, &cariPokemonThread, (void *)state) < 0){
+				printf("can't create thread\n");
+				exit(EXIT_FAILURE);
+			}
+		}
+	}else if(choice == 2){
+		state->gameState = POKEDEX;
+	}else if(choice == 3){
+		state->gameState = SHOP;
+	}
+}
+
+void printNormalMenu(State_t *state) {
+	printf("--MAIN MENU--\n");
+	if(state->cariPokemon){
+		printf("1. Berhenti Mencari\n");
+	}else{
+		printf("1. Cari Pokemon\n");
+	}
+	printf("2. Pokedex\n");
+	printf("3. Shop\n");
+	printf("4. Refresh\n");
+	printf("Choice : ");
+}
+
+void pokedex(State_t * state){
+	printPokedexMenu(state);
+	int choice;
+	scanf("%d", &choice);
+	if(choice == 1){
+		if(state->inventory->berry){
+			if(state->pokeBag->count){
+				printf("Telah dikasi makan\n");
+				state->inventory->berry -= 1;
+				for(int i = 0; i < state->pokeBag->count; i++){
+					addApPokemon(state->pokeBag->pokemon[i], 10);
+				}
+			}else{
+				printf("Tidak punya pokemon\n");
+			}
+		}else{
+			printf("Tidak punya berry\n");
+		}
+	}else if(choice == 2){
+		printf("index pokemon yang mau dilepas : ");
+		int pokemon;
+		scanf("%d", &pokemon);
+		if(pokemon <= 0 || pokemon > state->pokeBag->count){
+			printf("Tidak ada yang dilepas\n");
+		}else{
+			int price = state->pokeBag->pokemon[pokemon-1]->price;
+			removePokemon(state->pokeBag, pokemon-1);
+			state->inventory->pokedollar+=price;
+			printf("Pokemon dilepas, Pokedollar anda sekarang adalah %d\n", state->inventory->pokedollar);
+		}
+	}else if(choice == 3){
+		state->gameState = NORMAL_MODE;
+	}
+}
+
+void printPokedexMenu(State_t *state) {
+	printf("--POKEDEX--\n");
+	if(state->pokeBag->count == 0){
+		printf("Anda tidak mempunyai pokemon\n");
+	}else{
+		for(int i = 0; i < state->pokeBag->count; i++){
+			printf("---------------\n");
+			printf("%d. %s\n", i+1, state->pokeBag->pokemon[i]->name);
+			printf("TYPE : %d\n", state->pokeBag->pokemon[i]->type);
+			printf("AP : %d\n", state->pokeBag->pokemon[i]->ap);
+			printf("Pokedollar : %d\n", state->pokeBag->pokemon[i]->price);
+			printf("---------------\n");
+		}
+	}
+	printf("Berry : %d\n", state->inventory->berry);
+	printf("---------------\n");
+	printf("1. Beri makan\n");
+	printf("2. Lepas pokemon\n");
+	printf("3. Kembali\n");
+	printf("4. Refresh\n");
+	printf("Choice : ");
+}
+
+void shop(State_t * state){
+	Shop_t * sharedShop = state->sharedShop;
+	Inventory_t * inventory = state->inventory;
+	printShopMenu(sharedShop, inventory);
+	int choice;
+	scanf("%d", &choice);
+	if(choice == 2){
+		if(inventory->pokedollar < sharedShop->lullabyPowderPrice){
+			printf("Pokedollar tidak cukup\n");
+		} else if (inventory->lullabyPowder >= 99){
+			printf("Anda tidak bisa menampung lullabyPowder lagi!\n");
+		}else{
+			if(sharedShop->lullabyPowder){
+				printf("Telah dibeli 1 lullabyPowder\n");
+				inventory->lullabyPowder++;
+				inventory->pokedollar -= sharedShop->lullabyPowderPrice;
+
+				while(state->sharedShop->isLocked) usleep(10000);
+				state->sharedShop->isLocked = 1;
+				state->sharedShop->lullabyPowder--;
+				state->sharedShop->isLocked = 0;
+			}else{
+				printf("Stock lullaby powder habis\n");
+			}
+		}
+	}else if(choice == 3){
+		if(inventory->pokedollar < sharedShop->pokeballPrice){
+			printf("Pokedollar tidak cukup\n");
+		} else if (inventory->pokeball >= 99){
+			printf("Anda tidak bisa menampung pokeball lagi!\n");
+		}else{
+			if(sharedShop->pokeball){
+				printf("Telah dibeli 1 pokeball\n");
+				inventory->pokeball++;
+				inventory->pokedollar -= sharedShop->pokeballPrice;
+
+				while(state->sharedShop->isLocked) usleep(10000);
+				state->sharedShop->isLocked = 1;
+				state->sharedShop->pokeball--;
+				state->sharedShop->isLocked = 0;
+			}else{
+				printf("Stock pokeball habis\n");
+			}
+		}
+	}else if(choice == 4){
+		if(inventory->pokedollar < sharedShop->berryPrice){
+			printf("Pokedollar tidak cukup\n");
+		} else if (inventory->berry >= 99){
+			printf("Anda tidak bisa menampung berry lagi!\n");
+		}else{
+			if(sharedShop->berry){
+				printf("Telah dibeli 1 berry\n");
+				inventory->berry++;
+				inventory->pokedollar -= sharedShop->berryPrice;
+
+				while(state->sharedShop->isLocked) usleep(10000);
+				state->sharedShop->isLocked = 1;
+				state->sharedShop->berry--;
+				state->sharedShop->isLocked = 0;
+			}else{
+				printf("Stock berry habis\n");
+			}
+		}
+	}else if(choice == 5){
+		state->gameState = NORMAL_MODE;
+	}
+}
+
+void printShopMenu(Shop_t *sharedShop, Inventory_t *inventory) {
+	printf("--SHOP--\n");
+	printf("List item : \n");
+	printf("1. Lullaby Powder | Stock : %d | Price : %d Pokedollar\n", sharedShop->lullabyPowder, sharedShop->lullabyPowderPrice);
+	printf("2. Pokeball | Stock : %d | Price : %d Pokedollar\n", sharedShop->pokeball, sharedShop->pokeballPrice);
+	printf("3. Berry | Stock : %d | Price : %d Pokedollar\n", sharedShop->berry, sharedShop->berryPrice);
+	printf("----------------\n");
+	printf("You have :\n");
+	printf("1. Lullaby Powder | Stock : %d\n", inventory->lullabyPowder);
+	printf("2. Pokeball | Stock : %d\n", inventory->pokeball);
+	printf("3. Berry | Stock : %d\n", inventory->berry);
+	printf("4. Pokedollar | Stock : %d\n", inventory->pokedollar);
+	printf("----------------\n");
+	printf("Aksi :\n");
+	printf("1. Refresh\n");
+	printf("2. Beli Lullabypowder\n");
+	printf("3. Beli Pokeball\n");
+	printf("4. Beli Berry\n");
+	printf("5. Kembali\n");
+	printf("choice : ");
+}
+
+void captureMode(State_t * state){
+	RandPokemon_t * pokemon = state->randPokemon;
+	pokemon->isLocked = 1;
+	pthread_t wild;
+
+	WildPokemonParam_t * param = malloc(sizeof(WildPokemonParam_t));
+	param->state = state;
+	param->isRunning = 1;
+
+	if(pthread_create(&wild, NULL, &wildpokemonThread, (void *)param) < 0){
+		printf("can't create thread\n");
+		exit(EXIT_FAILURE);
+	}
+
+	int choice;
+	while(pokemon->isLocked){
+		printCaptureMenu(pokemon);
+		scanf("%d", &choice);
+		if(!pokemon->isLocked){
+			printf("Pokemon telah kabur\n");
+			break;
+		}
+		if(choice == 1){
+
+			if(state->inventory->pokeball > 0){
+				state->inventory->pokeball--;
+				int random = rand()%(pokemon->capRateB);
+				if(random < pokemon->capRateA + state->jumlahLullabyActive * 2){
+
+					param->isRunning = 0;
+
+					Pokemon_t * tamedPokemon = tamePokemon(pokemon);
+					if(addPokemon(state, tamedPokemon)){
+						pthread_t t;
+						PokemonParam_t * param = malloc(sizeof(PokemonParam_t));
+						param->state = state;
+						param->pokemon = tamedPokemon;
+						if(pthread_create(&t, NULL, &pokemonThread, param) < 0){
+							printf("can't create thread\n");
+							exit(EXIT_FAILURE);
+						}
+						printf("Tertangkap\n");
+						state->gameState = NORMAL_MODE;
+						pokemon->isLocked = 0;
+					}else{
+						printf("Tertangkap akan tetapi slot full jadi terlepas\n");
+						free(tamedPokemon);
+						pokemon->isLocked = 0;
+						state->gameState = NORMAL_MODE;
+					}
+
+				}else{
+					printf("Tidak kena\n");
+				}
+			}else{
+				printf("Tidak punya pokeball\n");
+			}
+
+		}else if(choice == 2){
+			
+			if(state->inventory->lullabyPowder){
+
+				state->inventory->lullabyPowder--;
+				pthread_t lullaby;
+				if(pthread_create(&lullaby, NULL, &lullabyThread, state) < 0){
+					printf("can't create thread\n");
+					exit(EXIT_FAILURE);
+				}
+
+			}else{
+				printf("Tidak punya lullaby powder\n");
+			}
+
+		}else if(choice == 3){
+			pokemon->isLocked = 0;
+			state->gameState = NORMAL_MODE;
+		}
+	}
+	pokemon->isLocked = 0;
+}
+
+void printCaptureMenu(RandPokemon_t *pokemon) {
+		printf("--CAPTURE MODE--\n");
+		printf("Pokemon :\n");
+		printf("Nama : %s\n", pokemon->name);
+		printf("Type : %d\n", pokemon->type);
+		printf("Price : %d\n", pokemon->price);
+		printf("Aksi :\n");
+		printf("1. Tangkap\n");
+		printf("2. Gunakan lullaby powder\n");
+		printf("3. Keluar\n");
+		printf("choice : ");
+}
+
+int main(){
+	srand(time(0));
+
+	Inventory_t * inventory = malloc(sizeof(Inventory_t));
+	memset(inventory, 0, sizeof(Inventory_t));
+	inventory->pokeball = 100;
+
+	PokeBag_t * pokeBag = malloc(sizeof(PokeBag_t));
+	memset(pokeBag, 0, sizeof(PokeBag_t));
+
+	State_t * state = malloc(sizeof(State_t));
+	memset(state, 0, sizeof(state));
+	state->pokeBag = pokeBag;
+	state->inventory = inventory;
+
+	key_t key = 1111;
+	RandPokemon_t * randPokemon;
+	int shmid =  shmget(key, sizeof(RandPokemon_t), IPC_CREAT | 0666);
+	randPokemon = shmat(shmid, NULL, 0);
+
+	state->randPokemon = randPokemon;
+
+	key_t key2 = 2222;
+	Shop_t * sharedShop;
+	int shmid2 =  shmget(key2, sizeof(Shop_t), IPC_CREAT | 0666);
+	sharedShop = shmat(shmid2, NULL, 0);
+
+	state->sharedShop = sharedShop;
+
+	int * isRunning = &state->isRunning;
+	*isRunning = 1;
+	int * gameState = &state->gameState;
+	while(*isRunning){
+		if(*gameState == NORMAL_MODE){
+			normalMode(state);
+		}else if(*gameState == POKEDEX){
+			pokedex(state);
+		}else if(*gameState == SHOP){
+			shop(state);
+		}else if(*gameState == CAPTURE_MODE){
+			captureMode(state);
+		}
+	}
+
+	shmdt(randPokemon);
+	shmctl(shmid, IPC_RMID, NULL);
+
+	shmdt(sharedShop);
+	shmctl(shmid2, IPC_RMID, NULL);
+
+	return 0;
+}
+
+void addApPokemon(Pokemon_t * pokemon, int ap){
+	pokemon->ap += ap;
+}
+
+int addPokemon(State_t * state, Pokemon_t * pokemon){
+	if(state->pokeBag->count == 7) {
+		state->inventory->pokedollar += pokemon->price;
+		return 0;
+	} else {
+		state->pokeBag->pokemon[state->pokeBag->count++] = pokemon;
+		return 1;
+	}
+}
+
+void removePokemon(PokeBag_t * pokeBag, int index){
+	// pokeBag->pokemon[index-1]->released = 1;
+	free(pokeBag->pokemon[index]);
+	// Push back
+	for(int i = index; i < pokeBag->count-1; i++){
+		pokeBag->pokemon[i] = pokeBag->pokemon[i + 1];
+	}
+	pokeBag->pokemon[--pokeBag->count] = NULL;
+}
+
+Pokemon_t * tamePokemon(RandPokemon_t * wildPokemon){
+	Pokemon_t * newPokemon = malloc(sizeof(Pokemon_t));
+	memset(newPokemon, 0, sizeof(newPokemon));
+	strcpy(newPokemon->name, wildPokemon->name);
+	newPokemon->type = wildPokemon->type;
+	newPokemon->ap = 100;
+	newPokemon->price = wildPokemon->price;
+	return newPokemon;
+}
+
+void * wildpokemonThread(void * param){
+	WildPokemonParam_t * parameter = (WildPokemonParam_t *)param;
+	State_t * state = parameter->state;
+	while (state->isRunning && parameter->isRunning){
+		sleep(20);
+		if(!parameter->isRunning || !state->isRunning){
+			break;
+		}
+		if(state->jumlahLullabyActive) {
+			continue;
+		}
+		int random = rand()%(state->randPokemon->escapeRateB);
+		if(random < state->randPokemon->escapeRateA){
+			state->randPokemon->isLocked = 0;
+			break;
+		}
+	}
+	
+}
+
+void * cariPokemonThread(void * param){
+	State_t * state = (State_t *) param;
+	while(state->cariPokemon){
+		if(rand()%10 <= 5){
+			state->cariPokemon = 0;
+			state->gameState = CAPTURE_MODE;
+			break;
+		}
+		sleep(10);
+	}
+}
+
+void * pokemonThread(void * param){
+	PokemonParam_t * p = (PokemonParam_t *)param;
+	while (p->state->isRunning && !p->pokemon->released){
+		sleep(10);
+		if(p->state->gameState == CAPTURE_MODE){
+			continue;
+		}
+		p->pokemon->ap -= 10;
+		if(p->pokemon->ap == 0){
+			int random = rand()%10;
+			if(random == 0){
+				p->pokemon->ap = 50;
+			}else{
+				//lepas
+				for(int i = 0; i < p->state->pokeBag->count; i++){
+					if(p->state->pokeBag->pokemon[i] == p->pokemon){
+						removePokemon(p->state->pokeBag, i);
+						break;
+					}
+				}
+			}
+		}
+	}
+	
+}
+
+void * lullabyThread(void * param){
+	State_t * state = (State_t *)param;
+	state->jumlahLullabyActive++;
+	sleep(10);
+	state->jumlahLullabyActive--;
+}
+```
+
 ## Soal 2
 Qiqi adalah sahabat MamMam dan Kaka. Qiqi , Kaka dan MamMam sangat senang bermain “Rainbow six” bersama-sama , akan tetapi MamMam sangat Toxic ia selalu melakukan Team killing kepada Qiqi di setiap permainannya. Karena Qiqi orang yang baik hati, meskipun marah Qiqi selalu berkata “Aku nggk marah!!”. Kaka ingin meredam kemarahan Qiqi dengan membuatkannya sebuah game yaitu TapTap Game. akan tetapi Kaka tidak bisa membuatnya sendiri, ia butuh bantuan mu. Ayo!! Bantu Kaka menenangkan Qiqi.
 <br/>
@@ -115,6 +832,558 @@ Choices : {your input}
 - Pada saat user berhasil login maka akan menampilkan pesan “Auth success” jika gagal “Auth Failed”
 - Pada saat user sukses meregister maka akan menampilkan List account yang terdaftar (username dan password harus terlihat)
 
+### Jawaban Soal 2
+1. client.c
+```
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <termios.h>
+#include <unistd.h>
+#include <pthread.h> //library thread
+
+#define PORT 8080
+
+void screenOneStart();
+void screenOneInputSwitch();
+void screenTwoStart();
+void screenTwoInputSwitch();
+void getChoices();
+
+static struct termios old, new;
+
+char sendBuffer[1000], recvBuffer[1024];
+char chosenString[1000];
+int sock = 0;
+
+/* Initialize new terminal i/o settings */
+void initTermios(int echo) {
+  tcgetattr(0, &old); /* grab old terminal i/o settings */
+  new = old; /* make new settings same as old settings */
+  new.c_lflag &= ~ICANON; /* disable buffered i/o */
+  new.c_lflag &= echo ? ECHO : ~ECHO; /* set echo mode */
+  tcsetattr(0, TCSANOW, &new); /* use these new terminal i/o settings now */
+}
+
+/* Restore old terminal i/o settings */
+void resetTermios(void) 
+{
+  tcsetattr(0, TCSANOW, &old);
+}
+
+void *listenSpacebars(void *arg) {
+	while (1) {
+		if (getchar() == 32) {
+			send(sock, "hitting", 7, 0);
+		}
+	}
+}
+
+void *printWaitingPlayer(void *arg) {
+	// TODO print every second
+	while (1) {
+		printf("Waiting for player ...\n");
+		sleep(1);
+	}
+}
+
+void gameInit() {
+	pthread_t printThread;
+	int iretPrint = pthread_create(&printThread, NULL, printWaitingPlayer, NULL);
+	if (iretPrint) { // jika error
+		fprintf(stderr, "Error - pthread_create()\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// Wait till recv "game start" message
+	memset(recvBuffer, 0, sizeof(recvBuffer));
+	while (strcmp(recvBuffer, "game start") != 0) {
+		read(sock, recvBuffer, 1024);
+	}
+
+	// Recieved game start message
+	pthread_cancel(printThread); //stop printing waiting for player
+	initTermios(1);
+	printf("Game dimulai silahkan tap tap secepat mungkin !\n");
+
+	pthread_t spacebarThread;
+	// Handle spacebar inputs
+	int iret = pthread_create(&spacebarThread, NULL, listenSpacebars, NULL); //membuat thread pertama
+	if (iret) { // jika error
+		fprintf(stderr,"Error - pthread_create() return code: %d\n", iret);
+		exit(EXIT_FAILURE);
+	}
+
+	// Handle recieving messages from server
+	while (1) {
+		memset(recvBuffer, 0, sizeof(recvBuffer));
+		read(sock, recvBuffer, 1024);
+		// Stop recieving spacebars
+		if (strcmp(recvBuffer, "hit") == 0) {
+		// If it's the player getting hit
+			printf("hit !!\n");
+		} else if (strcmp(recvBuffer, "end win") == 0) {
+		// If the game has ended and client won
+			printf("Game berakhir kamu menang\n");
+			// end game
+			break;
+		} else if (strcmp(recvBuffer, "end lose") == 0) {
+		// If the game has ended and client lost
+			printf("Game berakhir kamu kalah\n");
+			// end game
+			break;
+		} else {
+		// Else it's the amount of health the player have left
+			printf("%s\n", recvBuffer);
+		}
+	}
+	// Game has ended
+	resetTermios();
+	pthread_cancel(spacebarThread);
+	screenTwoStart();
+}
+
+void findMatchSwitch() {
+	send(sock, "find", 4, 0);
+	gameInit();
+}
+
+void sendUserPass() {
+	// Get username of user
+	printf("    Username : ");
+	scanf("%s", sendBuffer);
+	// Send username to server
+	send(sock, sendBuffer, strlen(sendBuffer), 0);
+	memset(sendBuffer, 0, sizeof(sendBuffer));
+
+	// Get password of user
+	printf("    Password : ");
+	scanf("%s", sendBuffer);
+	// Send password to server
+	send(sock, sendBuffer, strlen(sendBuffer), 0);
+	memset(sendBuffer, 0, sizeof(sendBuffer));
+}
+
+void loginSwitch() {
+	send(sock, "login", 5, 0);
+	// Send username and password to server
+	sendUserPass();
+
+	// Read server response (login success|login failed)
+	memset(recvBuffer, 0, sizeof(recvBuffer));
+	read(sock, recvBuffer, 1024);
+	if (strcmp(recvBuffer, "login success") == 0) {
+	// Login success
+		printf("login success\n");
+		screenTwoStart();
+	} else {
+	// Login unsuccess
+		printf("login failed\n");
+		screenOneStart();
+	}
+}
+
+void registerSwitch() {
+	send(sock, "register", 8, 0);
+	// Send username and password to server
+	sendUserPass();
+
+	// Read server response (register success|register failed)
+	memset(recvBuffer, 0, sizeof(recvBuffer));
+	read(sock, recvBuffer, 1024);
+	if (strcmp(recvBuffer, "register success") == 0) {
+	// register success
+		printf("register success\n");
+		screenOneStart();
+	} else {
+	// register unsuccess
+		printf("register failed\n");
+		printf("THIS IS NOT SUPPOSED EVER HAPPEN\n");
+		screenOneStart();
+	}
+}
+
+void screenTwoInputSwitch() {
+	if (strcmp(chosenString, "find") == 0) {
+	// If chosen find match
+		// Go to finding match
+		findMatchSwitch();
+	} else if (strcmp(chosenString, "logout") == 0) {
+	// if choose to logout
+		// Go to first screen
+		send(sock, "logout", 6, 0);
+		screenOneStart();
+	} else {
+		printf("Input unrecognized\n");
+		getChoices();
+		screenTwoInputSwitch();
+	}
+}
+
+void screenTwoStart() {
+	printf("1.  Find match\n");
+	printf("2.  Logout\n");
+	getChoices();
+	screenTwoInputSwitch();
+}
+
+void screenOneInputSwitch() {
+	if (strcmp(chosenString, "login") == 0) {
+		// Show login screen
+		loginSwitch();
+	} else if (strcmp(chosenString, "register") == 0) {
+		// Show register screen
+		registerSwitch();
+		// Go back to main screen
+		screenOneStart();
+	} else {
+		printf("Input unrecognized\n");
+		getChoices();
+		screenOneInputSwitch();
+	}
+}
+
+void screenOneStart() {
+	printf("1.  Login\n");
+	printf("2.  Register\n");
+	getChoices();
+	screenOneInputSwitch();
+}
+
+void getChoices() {
+	printf("    Choices : ");
+	memset(chosenString, 0, sizeof(chosenString));
+	scanf("%s", chosenString);
+}
+
+int main(int argc, char const *argv[]) {
+	int keep_connection = 1;
+	struct sockaddr_in address;
+	struct sockaddr_in serv_addr;
+
+	// create socket
+	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		printf("\n Socket creation error \n");
+		return -1;
+	}
+  
+	memset(&serv_addr, '0', sizeof(serv_addr));
+  
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(PORT);
+	
+	// addr
+	if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
+		printf("\nInvalid address/ Address not supported \n");
+		return -1;
+	}
+
+	// connect to server
+	if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+		printf("\nConnection Failed \n");
+		return -1;
+	}
+
+	while(keep_connection) { 
+		screenOneStart();
+	}
+	return 0;
+}
+```
+2. server.c
+```
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <pthread.h> //library thread
+#define PORT 8080
+
+typedef struct Sesh_s{
+	int sock;
+	char recvBuffer[1024];
+	char sendBuffer[1000];
+	char loginSes[1024];
+	int health;
+} Sesh_t;
+
+void *clientStart(void *temp);
+void clientEnd(Sesh_t *sesh);
+void getInput(Sesh_t *sesh);
+
+
+typedef struct Game_s {
+	Sesh_t *seshA;
+	Sesh_t *seshB;
+} Game_t;
+
+void *startListener(void *temp) {
+	Game_t *game = (Game_t *)temp;
+	Sesh_t *seshA = game->seshA;
+	Sesh_t *seshB = game->seshB;
+	send(seshA->sock, "game start", 16, 0);
+	
+	while(1) {
+		// Read for input
+		memset(seshA->recvBuffer, 0, sizeof(seshA->recvBuffer));
+		read(seshA->sock, seshA->recvBuffer, 1024);
+		// Stop loop if any of them have reached health <= 0
+		if (seshA->health <= 0 || seshB->health <= 0) {
+			break;
+		}
+		if (strcmp(seshA->recvBuffer, "hitting") == 0) {
+			// send hit message
+			send(seshA->sock, "hit", 3, 0);
+			// Prepare health message to send to B
+			seshB->health -= 10;
+			sprintf(seshB->sendBuffer, "%d", seshB->health);
+			// Send message health decreased
+			send(seshB->sock, seshB->sendBuffer, strlen(seshB->sendBuffer), 0);
+		}
+	}
+	// end session
+	// Send game over message to clients
+	if (seshA->health <= 0) {
+		send(seshA->sock, "end lose", 8, 0);
+	} else {
+		send(seshA->sock, "end win", 7, 0);
+	}
+	
+	// Listen for more input
+	getInput(seshA);
+}
+
+void gameStart(Sesh_t *seshA, Sesh_t *seshB) {
+	// Set health
+	seshA->health = 100;
+	seshB->health = 100;
+
+	pthread_t thread;
+	Game_t *game = malloc(sizeof(Game_t));
+	game->seshA = seshA;
+	game->seshB = seshB;
+	int iret = pthread_create(&thread, NULL, startListener, (void *) game); //membuat thread pertama
+	if (iret) { // jika error
+		fprintf(stderr,"Error - pthread_create() return code: %d\n", iret);
+		exit(EXIT_FAILURE);
+	}
+
+	game = malloc(sizeof(Game_t));
+	game->seshA = seshB;
+	game->seshB = seshA;
+	startListener(game);
+}
+
+typedef struct WaitOpp_s{
+	Sesh_t *sesh;
+} WaitOpp_t;
+WaitOpp_t *waitOpp;
+
+void opponentCall(Sesh_t *sesh) {
+	// Signal to waiting thread that there's a new client finding
+	Sesh_t *seshA = waitOpp->sesh;
+	Sesh_t *seshB = sesh;
+	waitOpp = NULL;
+
+	// Start the game
+	// LET THE GAMES BEGII1I1I1I1I1IN
+	gameStart(seshA, seshB);
+
+	free(waitOpp);
+}
+
+void opponentWait(Sesh_t *sesh) {
+	// Initialize WaitOpp struct
+	waitOpp = malloc(sizeof(WaitOpp_t));
+	waitOpp->sesh = sesh;
+
+	// Kill current thread as it is no longer in use
+	pthread_exit(NULL);
+}
+
+void findSwitch(Sesh_t *sesh) {
+	if (waitOpp == NULL) {
+	// If there's no client in the waiting list, 
+	// put client in waiting list
+		opponentWait(sesh);
+	} else {
+	// If There's already a client in the waiting list,
+	// join the client
+		opponentCall(sesh);
+	}
+}
+
+void recvUserPass(Sesh_t *sesh) {
+	// Recieve Username
+	memset(sesh->recvBuffer, 0, sizeof(sesh->recvBuffer));
+	read(sesh->sock, sesh->recvBuffer, 1024);
+	strcpy(sesh->loginSes, sesh->recvBuffer);
+	// Recieve Password
+	memset(sesh->recvBuffer, 0, sizeof(sesh->recvBuffer));
+	read(sesh->sock, sesh->recvBuffer, 1024);
+	strcat(sesh->loginSes," - ");
+	strcat(sesh->loginSes, sesh->recvBuffer);
+}
+
+void registerSwitch(Sesh_t *sesh) {
+	// Get user password from user
+	recvUserPass(sesh);
+	// Write user password to akun.txt
+	FILE* fp = fopen ("akun.txt","a");
+	fprintf(fp, "%s\n", sesh->loginSes);
+	fclose(fp);
+
+	// Print every entry on akun.txt 
+	// because the problem tells us to do it
+	char line[1000];
+	fp = fopen ("akun.txt","r");
+	while (fgets(line, sizeof(line), fp) != NULL) {
+		printf("%s", line);
+	}
+	fclose(fp);
+
+	send(sesh->sock, "register success", 16, 0);
+
+	// Listen for more input
+	getInput(sesh);
+}
+
+void loginSwitch(Sesh_t *sesh) {
+	// Get user password from user
+	recvUserPass(sesh);
+
+	// Check user password is in database
+	FILE* fp = fopen ("akun.txt", "r");
+	int flag = 0;
+	char line[1000];
+
+	while (fgets(line, sizeof(line), fp) != NULL) {
+		if (strstr(line, sesh->loginSes) != NULL) {
+			flag = 1;
+			printf("Auth success\n");
+			send(sesh->sock, "login success", 13, 0);
+			break;
+		}
+	}
+
+	if(flag == 0){
+		printf("Auth Failed\n");
+		send(sesh->sock, "login failed", 12, 0);
+	}
+
+	fclose(fp);
+	// Listen for more input
+	getInput(sesh);
+}
+
+void logoutSwitch(Sesh_t *sesh) {
+	memset(sesh->loginSes, 0, sizeof(sesh->loginSes));
+	// Listen for more input
+	getInput(sesh);
+}
+
+// handle for login | register | logout | find
+void getInput(Sesh_t *sesh) {
+	// Read request
+	memset(sesh->recvBuffer, 0, sizeof(sesh->recvBuffer));
+	read(sesh->sock, sesh->recvBuffer, 1024);
+
+	if((strcmp(sesh->recvBuffer, "login") == 0)){
+	// if user chooses login
+		loginSwitch(sesh);
+	} else if ((strcmp(sesh->recvBuffer, "register")) == 0) {
+	// If user chooses register
+		registerSwitch(sesh);
+	} else if ((strcmp(sesh->recvBuffer, "find")) == 0) {
+	// If input is not correct
+		findSwitch(sesh);
+	} else if ((strcmp(sesh->recvBuffer, "logout")) == 0) {
+		logoutSwitch(sesh);
+	}
+}
+
+void clientEnd(Sesh_t *sesh) {
+	free(sesh);
+}
+
+void *clientStart(void *temp) {
+	Sesh_t *sesh;
+	sesh = (Sesh_t *)temp;
+
+	// Listen input
+	getInput(sesh);
+}
+
+void createSocket(int *server_fd, struct sockaddr_in * address) {
+	int opt = 1;
+	// create socket
+	if ((*server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+		perror("socket failed");
+		exit(EXIT_FAILURE);
+	}
+
+	// If socket opt permissionss error
+	if (setsockopt(*server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+		perror("setsockopt");
+		exit(EXIT_FAILURE);
+	}
+
+	// socket setup
+	address->sin_family = AF_INET;
+	address->sin_addr.s_addr = INADDR_ANY;
+	address->sin_port = htons( PORT );
+	
+	// bind socket to addr
+	if (bind(*server_fd, (struct sockaddr *)address, sizeof(*address))<0) {
+		perror("bind failed");
+		exit(EXIT_FAILURE);
+	}
+
+	// socket listen from addr
+	if (listen(*server_fd, 3) < 0) {
+		perror("listen");
+		exit(EXIT_FAILURE);
+	}
+}
+
+int main(int argc, char const *argv[]) {
+	int keep_connection = 1;
+	int server_fd;
+	struct sockaddr_in address;
+	int addrlen = sizeof(address);
+	// Recieve buffer
+	char buffer[1024];
+
+	createSocket(&server_fd, &address);
+	pthread_t *thread;
+	Sesh_t *sesh;
+	while(keep_connection) { 
+		int new_socket;
+		// accept incoming connection
+		if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) {
+			perror("accept");
+			exit(EXIT_FAILURE);
+		}
+
+		thread = malloc(sizeof(pthread_t));
+		sesh = malloc(sizeof(Sesh_t));
+		sesh->sock = new_socket;
+		int iret = pthread_create(thread, NULL, clientStart, (void *) sesh); //membuat thread pertama
+		if(iret) //jika eror
+		{
+			fprintf(stderr,"Error - pthread_create() return code: %d\n", iret);
+			exit(EXIT_FAILURE);
+		}
+	}
+	return 0;
+}
+```
+
 ## Soal 3
 Buatlah sebuah program dari C untuk mengkategorikan file. Program ini akan memindahkan file sesuai ekstensinya (tidak case sensitive. JPG dan jpg adalah sama) ke dalam folder sesuai ekstensinya yang folder hasilnya terdapat di working directory ketika program kategori tersebut dijalankan.
 - Semisal program dijalankan:
@@ -163,7 +1432,7 @@ Begitu batu terakhir berhasil didapatkan. Gemuruh yang semakin lama semakin besa
 Norland segera memasukkan tiga buah batu mulia Emerald, Amethys, Onyx pada Peti Kayu. Maka terbukalah Peti Kayu tersebut. Di dalamnya terdapat sebuah harta karun rahasia. Sampai saat ini banyak orang memburu harta karun tersebut. Sebelum menghilang, dia menyisakan semua petunjuk tentang harta karun tersebut melalui tulisan dalam buku catatannya yang tersebar di penjuru dunia. "One Piece does exist".
 
 ### Jawaban Soal 4
-1. 4a.c
+1. soal4a.c
 ```
 #include <stdio.h>
 #include <stdlib.h>
@@ -272,7 +1541,7 @@ void *print_message_function( void *ptr )
     }
 }
 ```
-2. 4b.c
+2. soal4b.c
 ```
 #include<stdio.h> 
 #include<string.h> 
@@ -424,7 +1693,7 @@ int main(int argc, char const *argv[])
     return 0;
 }
 ```
-3. 4c.c
+3. soal4c.c
 ```
 #include<stdio.h> 
 #include<string.h> 
