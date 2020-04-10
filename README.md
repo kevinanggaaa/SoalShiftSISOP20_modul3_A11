@@ -161,3 +161,321 @@ maka:
 Begitu batu terakhir berhasil didapatkan. Gemuruh yang semakin lama semakin besar terdengar. Seluruh tempat berguncang dahsyat, tanah mulai merekah. Sebuah batu yang di atasnya terdapat kotak kayu muncul ke atas dengan sendirinya. Sementara batu tadi kembali ke posisinya. Tanah kembali menutup, seolah tidak pernah ada lubang merekah di atasnya satu detik lalu. 
 <br/>  
 Norland segera memasukkan tiga buah batu mulia Emerald, Amethys, Onyx pada Peti Kayu. Maka terbukalah Peti Kayu tersebut. Di dalamnya terdapat sebuah harta karun rahasia. Sampai saat ini banyak orang memburu harta karun tersebut. Sebelum menghilang, dia menyisakan semua petunjuk tentang harta karun tersebut melalui tulisan dalam buku catatannya yang tersebar di penjuru dunia. "One Piece does exist".
+
+### Jawaban Soal 4
+1. 4a.c
+```
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <pthread.h> //library thread
+
+void *print_message_function( void *ptr );
+void *calculateMatrix( void *ptr );
+
+// Source matrices
+// Make sure it fulfils the multiplication rules of matrices
+int matrix1[4][2] = {
+  1, 2,
+  3, 4,
+  5, 6,
+  7, 8 
+};
+
+int matrix2[2][5] = {
+  9, 10, 11, 12, 13,
+  14, 15, 16, 17, 18
+};
+
+// size of matrice
+int mat1I = 4, mat1J = 2;
+int mat2I = 2, mat2J = 5;
+// values to be returned by thread processes
+// int retVals[mat1I][mat2J];
+int retVals[4][5];
+// semaphone for retMatrix
+int retMatLock = 0;
+
+
+int main()
+{
+  pthread_t thread[mat1I][mat2J];//inisialisasi awal
+  int iret[mat1I][mat2J];
+  
+
+  // Dispatch a single thread for every element in result matrix
+  int i, j;
+  for (i = 0; i < mat1I; i++) {
+    for (j = 0; j < mat2J; j++) {
+      int *message;
+      message = malloc(sizeof(int) * 2);
+      message[0] = i;
+      message[1] = j;
+      void *msgPtr = (void *)message;
+      iret[i][j] = pthread_create( &thread[i][j], NULL, calculateMatrix, msgPtr); //membuat thread pertama
+      if(iret[i][j]) { //jika eror
+          fprintf(stderr,"Error - pthread_create() return code: %d\n",iret[i][j]);
+          exit(EXIT_FAILURE);
+      }
+
+      // printf("pthread_create() for thread 1 returns: %d\n", iret[i][j]);
+    }
+  }
+
+  for (i = 0; i < mat1I; i++) {
+    for (j = 0; j < mat2J; j++) {
+      pthread_join( thread[i][j], NULL );
+    //   printf("thread joined\n");
+    }
+  }
+
+  for (i = 0; i < mat1I; i++) {
+    printf("%d", retVals[i][0]);
+    for (j = 1; j < mat2J; j++) {
+      printf(" %d", retVals[i][j]);
+    }
+    printf("\n");
+  }
+  exit(EXIT_SUCCESS);
+}
+void *calculateMatrix( void *temp) {
+  int *message;
+  message = (int *)temp;
+
+  int iMat1 = message[0];
+  int jMat2 = message[1];
+  free(message);
+  int sum = 0;
+  int i;
+  for(i = 0; i < mat1J; i++) {
+    // printf("%d,%d multi: %d * %d = %d\n", 
+    // iMat1, jMat2, matrix1[iMat1][i], matrix2[i][jMat2], sum);
+    sum += matrix1[iMat1][i] * matrix2[i][jMat2];
+  }
+
+  // while(retMatLock) {
+  //   _sleep(1);
+  // }
+  // retMatLock = 1;
+  retVals[iMat1][jMat2] = sum;
+  // retMatLock = 0;
+}
+
+void *print_message_function( void *ptr )
+{
+    char *message;
+    message = (char *) ptr;
+    printf("%s \n", message);
+  int i;
+    for(i=0;i<10;i++){
+        printf("%s %d \n", message, i);
+    }
+}
+```
+2. 4b.c
+```
+#include<stdio.h> 
+#include<string.h> 
+#include<stdlib.h> 
+#include<unistd.h> 
+#include<pthread.h>
+#include<sys/types.h>
+#include<sys/wait.h>
+#include<sys/shm.h>
+#include<sys/ipc.h>
+
+int row = 4;
+int column = 5;
+key_t shmKey = 1234;
+
+void closePipes(int pipes[]) {
+    //close the pipe as it is no longer in use
+    close(pipes[0]); //close read pipe
+    close(pipes[1]); //close write pipe
+}
+
+void sharedMemoryInit() {
+
+}
+
+void runProgramOne() {
+    // prepare pipe
+	int pipeDesc[2];  
+    // Create pipe
+	if (pipe(pipeDesc)==-1)  { 
+        printf("SHOULD NEVER HAPPEN\n");
+        perror("pipe creation has failed\n");
+        exit(EXIT_FAILURE);
+	} 
+
+    // Create child
+	pid_t child_pid = fork(); 
+	if (child_pid < 0) { //If child creation error 
+        printf("SHOULD NEVER HAPPEN\n");
+	    perror("child creation failed\n");
+        exit(EXIT_FAILURE);
+	}  
+    
+    // In child
+    if (child_pid == 0)  { 
+        // Link stdout to pipe input
+        dup2(pipeDesc[1], STDOUT_FILENO); //pipe INPUT is now STDOUT
+
+        closePipes(pipeDesc);
+
+        // Run program 1
+        char *argv[] = {"4a",NULL};
+        execv("./4a.exe", argv);
+    } else {
+    // In parent
+        wait(NULL);
+        // get shared memory
+        int shmid = shmget(shmKey, sizeof(int)*20, IPC_CREAT | 0666);
+        int *buffer = (int *)shmat(shmid, NULL, 0);
+
+        // Make pipe output go to STDIN
+        dup2(pipeDesc[0], STDIN_FILENO); //pipe OUTPUT is now STDOUT
+        // Get input from last program
+        int in;
+        for (int i = 0; i < 20; i++) {
+            scanf("%d", &in);
+            // printf("in: %d\n", in);
+            buffer[i] = in;
+            // printf("buffer: %d\n", buffer[i]);
+        }
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 5; j++) {
+                printf("%d ", buffer[i*5+j]);
+            }
+            printf("\n");
+        }
+        
+        // Detatch from shared memory
+        shmdt(buffer); 
+    }
+
+}
+
+void *calcSum(void *temp) {
+    int *msg = (int *)temp;
+    int num = msg[0];
+    long res = num*(num + 1)/2;
+    return (void *)res;
+}
+
+int main(int argc, char const *argv[])
+{
+    // Make child
+    // Create child
+	pid_t child_pid = fork(); 
+	if (child_pid < 0) { //If child creation error 
+        printf("SHOULD NEVER HAPPEN\n");
+	    perror("child creation failed\n");
+        exit(EXIT_FAILURE);
+	}  
+    
+    // In child
+    if (child_pid == 0)  { 
+        // Run program 4a.exe
+        runProgramOne();
+        exit(EXIT_SUCCESS);
+    } else {
+        // Wait for program one to finish
+        wait(NULL);
+
+        // Get from output of program one on shared memory
+        int shmid = shmget(shmKey, sizeof(int)*20, IPC_CREAT | 0666);
+        int (*buffer)[5];
+        buffer = (int (*)[5])shmat(shmid, NULL, 0);
+        // Calculate using threads
+        pthread_t threads[4][5];
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 5; j++) {
+                int *msg = malloc(sizeof(int));
+                *msg = buffer[i][j];
+                int iret = pthread_create(&threads[i][j], NULL, calcSum, (void *) msg);
+                if (iret) {
+                    perror("failed to create thread");
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
+        
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 5; j++) {
+                int retVal;
+                pthread_join(threads[i][j], (void **)&retVal);
+                buffer[i][j] = retVal;
+            }
+        }
+        
+        // Get input from last program
+        int in;
+        for (int i = 0; i < 4; i++) {
+            printf("%d", buffer[i][0]);
+            for (int j = 1; j < 5; j++) {
+                printf(" %d", buffer[i][j]);
+            }
+            printf("\n");
+        }
+        shmdt(buffer);
+        shmctl(shmid,IPC_RMID,NULL); 
+    }
+    return 0;
+}
+```
+3. 4c.c
+```
+#include<stdio.h> 
+#include<string.h> 
+#include<stdlib.h> 
+#include<unistd.h> 
+#include<sys/types.h> 
+
+void closePipes(int pipes[]) {
+    //close the pipe as it is no longer in use
+    close(pipes[0]); //close read pipe
+    close(pipes[1]); //close write pipe
+}
+
+int main(int argc, char const *argv[])
+{
+    int status4;
+
+	int pipeDesc[2];  
+    // Create pipe
+	if (pipe(pipeDesc)==-1)  { 
+        printf("SHOULD NEVER HAPPEN\n");
+        perror("pipe creation has failed\n");
+        exit(EXIT_FAILURE);
+	} 
+
+    // Create child
+	pid_t child_pid = fork(); 
+	if (child_pid < 0) { //If child creation error 
+        printf("SHOULD NEVER HAPPEN\n");
+	    perror("child creation failed\n");
+        exit(EXIT_FAILURE);
+	}  
+    
+    // In child
+    if (child_pid == 0)  { 
+        dup2(pipeDesc[1], STDOUT_FILENO); //pipe INPUT is now STDOUT
+
+        closePipes(pipeDesc);
+
+        char *argm1[] = {"ls", NULL};
+        execv("/bin/ls", argm1);
+	} else {
+        dup2(pipeDesc[0], STDIN_FILENO); //pipe OUTPUT is now STDIN
+
+        closePipes(pipeDesc);
+
+        char *argm2[] = {"wc", "-l", NULL};
+        execv("/usr/bin/wc", argm2);
+    }
+
+
+    return 0;
+}
+```
