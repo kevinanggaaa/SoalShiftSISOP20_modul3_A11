@@ -1574,7 +1574,12 @@ int main(int argc, char* argv[]) {
 ![image](https://user-images.githubusercontent.com/60419316/78983677-dafe8400-7b4e-11ea-8b5d-338b165487e3.png)
 #### \* setelah ditest
 ![image](https://user-images.githubusercontent.com/60419316/78983819-25800080-7b4f-11ea-8c0c-8a333555af8e.png)
-#### 
+#### -d sebelum ditest
+![image](https://user-images.githubusercontent.com/60419316/79037507-f1aee480-7bfb-11ea-81ae-f6948c0caae8.png)
+#### -d setelah ditest
+![image](https://user-images.githubusercontent.com/60419316/79037532-2cb11800-7bfc-11ea-85cd-332187bf1547.png)
+![image](https://user-images.githubusercontent.com/60419316/79037539-3cc8f780-7bfc-11ea-9d64-2bc218de795d.png)
+![image](https://user-images.githubusercontent.com/60419316/79037545-48b4b980-7bfc-11ea-8e17-7db235ecd076.png)
 ## Soal 4
 Norland adalah seorang penjelajah terkenal. Pada suatu malam Norland menyusuri jalan setapak menuju ke sebuah gua dan mendapati tiga pilar yang pada setiap pilarnya ada sebuah batu berkilau yang tertancap. Batu itu berkilau di kegelapan dan setiap batunya memiliki warna yang berbeda. Norland mendapati ada sebuah teka-teki yang tertulis di setiap pilar. Untuk dapat mengambil batu mulia di suatu pilar, Ia harus memecahkan teka-teki yang ada di pilar tersebut. Norland menghampiri setiap pilar secara bergantian.
 - **Batu mulia pertama**. Emerald. Batu mulia yang berwarna hijau mengkilat. Pada batu itu Ia menemukan sebuah kalimat petunjuk. Ada sebuah teka-teki yang berisi:
