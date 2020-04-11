@@ -768,6 +768,19 @@ void * lullabyThread(void * param){
 	state->jumlahLullabyActive--;
 }
 ```
+### Bukti
+#### Saat mencari pokemon dan menangkap
+![image](https://user-images.githubusercontent.com/60419316/79040887-eec0ed80-7c15-11ea-971e-1b94c051a1a9.png)
+#### Saat melepas pokemon
+![image](https://user-images.githubusercontent.com/60419316/79040945-39db0080-7c16-11ea-9389-f44e5c8f4a9b.png)
+#### Saat membeli barang
+![image](https://user-images.githubusercontent.com/60419316/79040985-80c8f600-7c16-11ea-8ba3-104c31af7bba.png)
+#### Mereset persediaan barang
+![image](https://user-images.githubusercontent.com/60419316/79041017-b40b8500-7c16-11ea-8248-881e8f213a94.png)
+#### Memberi makan
+![image](https://user-images.githubusercontent.com/60419316/79041070-18c6df80-7c17-11ea-8edc-62fc85f618d8.png)
+#### Ketika menangkap pokemon lebih dari 7
+![image](https://user-images.githubusercontent.com/60419316/79041108-5297e600-7c17-11ea-8183-6764ce62fe8a.png)
 
 ## Soal 2
 Qiqi adalah sahabat MamMam dan Kaka. Qiqi , Kaka dan MamMam sangat senang bermain “Rainbow six” bersama-sama , akan tetapi MamMam sangat Toxic ia selalu melakukan Team killing kepada Qiqi di setiap permainannya. Karena Qiqi orang yang baik hati, meskipun marah Qiqi selalu berkata “Aku nggk marah!!”. Kaka ingin meredam kemarahan Qiqi dengan membuatkannya sebuah game yaitu TapTap Game. akan tetapi Kaka tidak bisa membuatnya sendiri, ia butuh bantuan mu. Ayo!! Bantu Kaka menenangkan Qiqi.
