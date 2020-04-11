@@ -1383,6 +1383,8 @@ int main(int argc, char const *argv[]) {
 	return 0;
 }
 ```
+### Bukti
+![image](https://user-images.githubusercontent.com/60419316/79039120-3db45600-7c09-11ea-8b0b-e89a84663b52.png)
 
 ## Soal 3
 Buatlah sebuah program dari C untuk mengkategorikan file. Program ini akan memindahkan file sesuai ekstensinya (tidak case sensitive. JPG dan jpg adalah sama) ke dalam folder sesuai ekstensinya yang folder hasilnya terdapat di working directory ketika program kategori tersebut dijalankan.
